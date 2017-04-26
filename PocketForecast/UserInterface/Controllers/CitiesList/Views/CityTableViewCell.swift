@@ -11,13 +11,13 @@
 
 import Foundation
 
-public class CityTableViewCell : UITableViewCell {
+open class CityTableViewCell : UITableViewCell {
     
     var cityLabel : UILabel!
     
     public override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.cityLabel = UILabel(frame: CGRectInset(self.bounds, 45, 0))
+        self.cityLabel = UILabel(frame: self.bounds.insetBy(dx: 45, dy: 0))
         self.addSubview(self.cityLabel)
     }
     

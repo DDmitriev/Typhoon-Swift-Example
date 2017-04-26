@@ -11,11 +11,11 @@
 
 import Foundation
 
-public class Theme : NSObject {
+open class Theme : NSObject {
     
-    public var backgroundResourceName : String?
-    public var navigationBarColor : UIColor?
-    public var forecastTintColor : UIColor?
-    public var controlTintColor : UIColor?
+    open var backgroundResourceName : String?
+    open var navigationBarColor : UIColor?
+    open var forecastTintColor : UIColor?
+    open var controlTintColor : UIColor?
         
 }

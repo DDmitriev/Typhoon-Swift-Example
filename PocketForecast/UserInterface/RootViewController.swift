@@ -12,21 +12,21 @@
 import Foundation
 
 private enum SideViewState {
-    case Hidden
-    case Showing
+    case hidden
+    case showing
 }
 
-public class RootViewController : UIViewController, PaperFoldViewDelegate {
+open class RootViewController : UIViewController, PaperFoldViewDelegate {
 
     let SIDE_CONTROLLER_WIDTH : CGFloat = 245.0
-    let lockQueue = dispatch_queue_create("pf.root.lockQueue", nil)
+    let lockQueue = DispatchQueue(label: "pf.root.lockQueue", attributes: [])
     
-    private var navigator : UINavigationController!
-    private var mainContentViewContainer : UIView!
-    private var sideViewState : SideViewState!
-    private var assembly : ApplicationAssembly!
+    fileprivate var navigator : UINavigationController!
+    fileprivate var mainContentViewContainer : UIView!
+    fileprivate var sideViewState : SideViewState!
+    fileprivate var assembly : ApplicationAssembly!
     
-    private var paperFoldView : PaperFoldView {
+    fileprivate var paperFoldView : PaperFoldView {
         get {
             return self.view as! PaperFoldView
         }
@@ -35,8 +35,8 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
         }
     }
 
-    private var citiesListController : UIViewController?
-    private var addCitiesController : UIViewController?
+    fileprivate var citiesListController : UIViewController?
+    fileprivate var addCitiesController : UIViewController?
     
     
     //-------------------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
         super.init(nibName : nil, bundle : nil)
         
         self.assembly = assembly
-        self.sideViewState = SideViewState.Hidden
+        self.sideViewState = SideViewState.hidden
         self.pushViewController(mainContentViewController, replaceRoot: true)
     }
         
@@ -60,13 +60,13 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
     // MARK: - Public Methods
     //-------------------------------------------------------------------------------------------
 
-    public func pushViewController(controller : UIViewController) {
+    open func pushViewController(_ controller : UIViewController) {
         self.pushViewController(controller, replaceRoot: false)
     }
     
-    public func pushViewController(controller : UIViewController, replaceRoot : Bool) {
+    open func pushViewController(_ controller : UIViewController, replaceRoot : Bool) {
         
-        dispatch_sync(lockQueue) {
+        lockQueue.sync {
             
             if (self.navigator == nil) {
                 self.makeNavigationControllerWithRoot(controller)
@@ -80,69 +80,69 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
         }
     }
 
-    public func popViewControllerAnimated(animated : Bool) {
+    open func popViewControllerAnimated(_ animated : Bool) {
         
-        let lockQueue = dispatch_queue_create("pf.root.lockQueue", nil)
-        dispatch_sync(lockQueue) {
-            self.navigator.popViewControllerAnimated(animated)
+        let lockQueue = DispatchQueue(label: "pf.root.lockQueue", attributes: [])
+        lockQueue.sync {
+            self.navigator.popViewController(animated: animated)
             return
         }
     }
     
-    public func showCitiesListController() {
-        if (self.sideViewState != SideViewState.Showing) {
-            self.sideViewState = SideViewState.Showing
+    open func showCitiesListController() {
+        if (self.sideViewState != SideViewState.showing) {
+            self.sideViewState = SideViewState.showing
             self.citiesListController = UINavigationController(rootViewController: self.assembly.citiesListController() as! UIViewController)
             
-            self.citiesListController!.view.frame = CGRectMake(0, 0, SIDE_CONTROLLER_WIDTH, self.mainContentViewContainer.frame.size.height)
+            self.citiesListController!.view.frame = CGRect(x: 0, y: 0, width: SIDE_CONTROLLER_WIDTH, height: self.mainContentViewContainer.frame.size.height)
             
             self.paperFoldView.delegate = self
-            self.paperFoldView.setLeftFoldContentView(citiesListController!.view, foldCount: 5, pullFactor: 0.9)
+            self.paperFoldView.setLeftFoldContent(citiesListController!.view, foldCount: 5, pullFactor: 0.9)
             self.paperFoldView.setPaperFoldState(PaperFoldStateLeftUnfolded)
             self.mainContentViewContainer.setNeedsDisplay()
         }
     }
     
-    public func dismissCitiesListController() {
-        if (self.sideViewState != SideViewState.Hidden) {
-            self.sideViewState = SideViewState.Hidden
+    open func dismissCitiesListController() {
+        if (self.sideViewState != SideViewState.hidden) {
+            self.sideViewState = SideViewState.hidden
             self.paperFoldView.setPaperFoldState(PaperFoldStateDefault)
             self.navigator!.topViewController!.viewWillAppear(true)
         }
     }
 
-    public func toggleSideViewController() {
-        if (self.sideViewState == SideViewState.Hidden) {
+    open func toggleSideViewController() {
+        if (self.sideViewState == SideViewState.hidden) {
             self.showCitiesListController()
         }
-        else if (self.sideViewState == SideViewState.Showing) {
+        else if (self.sideViewState == SideViewState.showing) {
             self.dismissCitiesListController()
         }
     }
     
-    public func showAddCitiesController() {
+    open func showAddCitiesController() {
         if (self.addCitiesController == nil) {
-            self.navigator.topViewController!.view.userInteractionEnabled = false
+            self.navigator.topViewController!.view.isUserInteractionEnabled = false
             
             self.addCitiesController = UINavigationController(rootViewController: self.assembly.addCityViewController() as! UIViewController)            
             
-            self.addCitiesController!.view.frame = CGRectMake(0, self.view.frame.origin.y + self.view.frame.size.height, SIDE_CONTROLLER_WIDTH, self.view.frame.size.height)
+            self.addCitiesController!.view.frame = CGRect(x: 0, y: self.view.frame.origin.y + self.view.frame.size.height, width: SIDE_CONTROLLER_WIDTH, height: self.view.frame.size.height)
             self.view.addSubview(self.addCitiesController!.view)
             
-            UIView.transitionWithView(self.view, duration: 0.25, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
+            UIView.transition(with: self.view, duration: 0.25, options: UIViewAnimationOptions(), animations: {
                 
-                self.addCitiesController!.view.frame = CGRectMake(0, 0, self.SIDE_CONTROLLER_WIDTH, self.view.frame.size.height)
+                self.addCitiesController!.view.frame = CGRect(x: 0, y: 0, width: self.SIDE_CONTROLLER_WIDTH, height: self.view.frame.size.height)
                 
             }, completion: nil)
         }
     }
     
-    public func dismissAddCitiesController() {
+    open func dismissAddCitiesController() {
         if (self.addCitiesController != nil) {
             self.citiesListController?.viewWillAppear(true)
-            UIView.transitionWithView(self.view, duration: 0.25, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
+            UIView.transition(with: self.view, duration: 0.25, options: UIViewAnimationOptions(), animations: {
                 
-                self.addCitiesController!.view.frame = CGRectMake(0, self.view.frame.size.height, self.SIDE_CONTROLLER_WIDTH, self.view.frame.size.height)
+                self.addCitiesController!.view.frame = CGRect(x: 0, y: self.view.frame.size.height, width: self.SIDE_CONTROLLER_WIDTH, height: self.view.frame.size.height)
                 
             }, completion: {
                 (completed) in
@@ -150,7 +150,7 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
                 self.addCitiesController!.view.removeFromSuperview()
                 self.addCitiesController = nil
                 self.citiesListController?.viewDidAppear(true)
-                self.navigator.topViewController!.view.userInteractionEnabled = true
+                self.navigator.topViewController!.view.isUserInteractionEnabled = true
             })
         }
     }
@@ -158,13 +158,13 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
     //-------------------------------------------------------------------------------------------
     // MARK: - PaperFoldViewDelegate
     //-------------------------------------------------------------------------------------------
-    public func paperFoldView(paperFoldView: AnyObject!, didFoldAutomatically automated: Bool, toState paperFoldState: PaperFoldState) {
+    open func paperFoldView(_ paperFoldView: AnyObject!, didFoldAutomatically automated: Bool, to paperFoldState: PaperFoldState) {
         if paperFoldState.rawValue == 0 {
             self.navigator.topViewController!.viewDidAppear(true)
             
             
-            let dummyView = UIView(frame: CGRectMake(1,1,1,1))
-            self.paperFoldView.setLeftFoldContentView(dummyView, foldCount: 0, pullFactor: 0)
+            let dummyView = UIView(frame: CGRect(x: 1,y: 1,width: 1,height: 1))
+            self.paperFoldView.setLeftFoldContent(dummyView, foldCount: 0, pullFactor: 0)
             self.citiesListController = nil
         }
     }
@@ -173,32 +173,32 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
     // MARK: - Overridden Methods
     //-------------------------------------------------------------------------------------------
 
-    public override func loadView() {
-        let screen = UIScreen.mainScreen().bounds
-        self.paperFoldView = PaperFoldView(frame: CGRectMake(0, 0, screen.size.width, screen.size.height))
+    open override func loadView() {
+        let screen = UIScreen.main.bounds
+        self.paperFoldView = PaperFoldView(frame: CGRect(x: 0, y: 0, width: screen.size.width, height: screen.size.height))
         self.paperFoldView.timerStepDuration = 0.02
-        self.view.autoresizingMask = [UIViewAutoresizing.FlexibleHeight, UIViewAutoresizing.FlexibleWidth]
+        self.view.autoresizingMask = [UIViewAutoresizing.flexibleHeight, UIViewAutoresizing.flexibleWidth]
         
         self.mainContentViewContainer = UIView(frame: self.paperFoldView.bounds)
-        self.mainContentViewContainer.backgroundColor = UIColor.blackColor()
-        self.paperFoldView.setCenterContentView(self.mainContentViewContainer)
+        self.mainContentViewContainer.backgroundColor = UIColor.black
+        self.paperFoldView.setCenterContent(self.mainContentViewContainer)
     }
     
-    public override func viewWillLayoutSubviews() {
+    open override func viewWillLayoutSubviews() {
         self.mainContentViewContainer.frame = self.view.bounds
     }
     
-    public override func shouldAutorotate() -> Bool {
-        return self.navigator!.topViewController!.shouldAutorotate()
+    open override var shouldAutorotate : Bool {
+        return self.navigator!.topViewController!.shouldAutorotate
     }
     
-    public override func willRotateToInterfaceOrientation(orientation: UIInterfaceOrientation, duration: NSTimeInterval) {
+    open override func willRotate(to orientation: UIInterfaceOrientation, duration: TimeInterval) {
 
-        self.navigator!.topViewController!.willRotateToInterfaceOrientation(orientation, duration: duration)
+        self.navigator!.topViewController!.willRotate(to: orientation, duration: duration)
     }
     
-    public override func didRotateFromInterfaceOrientation(orientation: UIInterfaceOrientation) {
-        self.navigator!.topViewController!.didRotateFromInterfaceOrientation(orientation)
+    open override func didRotate(from orientation: UIInterfaceOrientation) {
+        self.navigator!.topViewController!.didRotate(from: orientation)
     }
 
             
@@ -207,7 +207,7 @@ public class RootViewController : UIViewController, PaperFoldViewDelegate {
     // MARK: - Private Methods
     //-------------------------------------------------------------------------------------------
 
-    private func makeNavigationControllerWithRoot(root : UIViewController) {
+    fileprivate func makeNavigationControllerWithRoot(_ root : UIViewController) {
         self.navigator = UINavigationController(rootViewController: root)
         self.navigator.view.frame = self.view.bounds
         mainContentViewContainer.addSubview(self.navigator.view)

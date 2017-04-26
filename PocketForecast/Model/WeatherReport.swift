@@ -11,28 +11,28 @@
 
 import Foundation
 
-public class WeatherReport : NSObject, NSCoding {
+open class WeatherReport : NSObject, NSCoding {
     
-    public private(set) var city : String
-    public private(set) var date : NSDate
-    public private(set) var currentConditions : CurrentConditions
-    public private(set) var forecast : Array<ForecastConditions>
+    open fileprivate(set) var city : String
+    open fileprivate(set) var date : Date
+    open fileprivate(set) var currentConditions : CurrentConditions
+    open fileprivate(set) var forecast : Array<ForecastConditions>
     
-    public var cityDisplayName : String {
+    open var cityDisplayName : String {
         var displayName : String
-        let components : Array<String> = self.city.componentsSeparatedByString(",")
+        let components : Array<String> = self.city.components(separatedBy: ",")
         if (components.count > 1) {
             displayName = components[0]
         }
         else {
-            displayName = self.city.capitalizedString
+            displayName = self.city.capitalized
         }
         
         return displayName
     }
     
     
-    public init(city : String, date : NSDate, currentConditions : CurrentConditions,
+    public init(city : String, date : Date, currentConditions : CurrentConditions,
         forecast : Array<ForecastConditions>) {
         
         self.city = city
@@ -42,28 +42,28 @@ public class WeatherReport : NSObject, NSCoding {
     }
     
     public required init?(coder : NSCoder) {
-        self.city = coder.decodeObjectForKey("city") as! String
-        self.date = coder.decodeObjectForKey("date") as! NSDate
-        self.currentConditions = coder.decodeObjectForKey("currentConditions") as! CurrentConditions
-        self.forecast = coder.decodeObjectForKey("forecast") as! Array<ForecastConditions>
+        self.city = coder.decodeObject(forKey: "city") as! String
+        self.date = coder.decodeObject(forKey: "date") as! Date
+        self.currentConditions = coder.decodeObject(forKey: "currentConditions") as! CurrentConditions
+        self.forecast = coder.decodeObject(forKey: "forecast") as! Array<ForecastConditions>
     }
     
-    public func reportDateAsString() -> String {
-        let dateFormatter = NSDateFormatter()
+    open func reportDateAsString() -> String {
+        let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMM dd',' yyyy 'at' hh:mm a"
-        dateFormatter.locale = NSLocale.currentLocale()
-        return dateFormatter.stringFromDate(self.date)
+        dateFormatter.locale = Locale.current
+        return dateFormatter.string(from: self.date)
     }
     
-    public override var description: String {
+    open override var description: String {
         return String(format: "Weather Report: city=%@, current conditions = %@, forecast=%@", self.city, self.currentConditions, self.forecast )
     }
     
-    public func encodeWithCoder(coder : NSCoder) {
-        coder.encodeObject(self.city, forKey:"city")
-        coder.encodeObject(self.date, forKey:"date")
-        coder.encodeObject(self.currentConditions, forKey:"currentConditions")
-        coder.encodeObject(self.forecast, forKey:"forecast")
+    open func encode(with coder : NSCoder) {
+        coder.encode(self.city, forKey:"city")
+        coder.encode(self.date, forKey:"date")
+        coder.encode(self.currentConditions, forKey:"currentConditions")
+        coder.encode(self.forecast, forKey:"forecast")
 
     }
 

@@ -1,9 +1,8 @@
 platform :ios, '8.0'
 
-target :PocketForecast, :exclusive => true do
+target :PocketForecast do
     
-    pod 'Typhoon', :head
-    
+    pod 'Typhoon'
 
     pod 'ICLoader'
     pod 'NGAParallaxMotion'

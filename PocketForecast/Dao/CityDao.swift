@@ -26,18 +26,18 @@ import Foundation
     * Adds a new city to the list of cities to report weather for. If the city already exists in 
     * the list, it is ignored.
     */
-    func saveCity(name: String!)
+    func saveCity(_ name: String!)
     
     /**
     * Removes the city with the specified name from the list of cities to report weather for. If 
     * the city doesn't exist in the list, it will be ignored.
     */
-    func deleteCity(name: String!)
+    func deleteCity(_ name: String!)
     
     /**
     * Used to store the last page that the user visits.
     */
-    func saveCurrentlySelectedCity(cityName: String!)
+    func saveCurrentlySelectedCity(_ cityName: String!)
     
     /**
     * Clears out the currently selected city.

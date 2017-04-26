@@ -12,9 +12,9 @@
 import UIKit
 
 
-public class WeatherReportViewController: UIViewController {
+open class WeatherReportViewController: UIViewController {
 
-    public var weatherReportView : WeatherReportView {
+    open var weatherReportView : WeatherReportView {
         get {
             return self.view as! WeatherReportView
         }
@@ -23,13 +23,13 @@ public class WeatherReportViewController: UIViewController {
         }
     }
     
-    public private(set) var weatherClient : WeatherClient
-    public private(set) var weatherReportDao : WeatherReportDao
-    public private(set) var cityDao : CityDao
-    public private(set) var assembly : ApplicationAssembly
+    open fileprivate(set) var weatherClient : WeatherClient
+    open fileprivate(set) var weatherReportDao : WeatherReportDao
+    open fileprivate(set) var cityDao : CityDao
+    open fileprivate(set) var assembly : ApplicationAssembly
     
-    private var cityName : String?
-    private var weatherReport : WeatherReport?
+    fileprivate var cityName : String?
+    fileprivate var weatherReport : WeatherReport?
     
     
     //-------------------------------------------------------------------------------------------
@@ -58,9 +58,9 @@ public class WeatherReportViewController: UIViewController {
     // MARK: - Overridden Methods
     //-------------------------------------------------------------------------------------------
     
-    public override func viewWillAppear(animated: Bool) {
+    open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController!.navigationBarHidden = true
+        self.navigationController!.isNavigationBarHidden = true
 
         self.cityName = self.cityDao.loadSelectedCity()
         if (self.cityName != nil) {
@@ -74,18 +74,18 @@ public class WeatherReportViewController: UIViewController {
         }
     }
 
-    public override func viewDidAppear(animated: Bool) {
+    open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         if (self.cityName != nil) {
             
-            let cityListButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Bookmarks, target: self, action: "presentMenu")
-            cityListButton.tintColor = UIColor.whiteColor()
+            let cityListButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.bookmarks, target: self, action: #selector(WeatherReportViewController.presentMenu))
+            cityListButton.tintColor = UIColor.white
             
-            let space = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
+            let space = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
             
-            let refreshButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Refresh, target: self, action: "refreshData")
-            refreshButton.tintColor = UIColor.whiteColor()
+            let refreshButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.refresh, target: self, action: #selector(WeatherReportViewController.refreshData))
+            refreshButton.tintColor = UIColor.white
             
             self.weatherReportView.toolbar.items = [
                 cityListButton,
@@ -96,8 +96,8 @@ public class WeatherReportViewController: UIViewController {
     }
 
     
-    public override func viewWillDisappear(animated: Bool) {
-        self.navigationController!.navigationBarHidden = false
+    open override func viewWillDisappear(_ animated: Bool) {
+        self.navigationController!.isNavigationBarHidden = false
         super.viewWillDisappear(animated)
     }
     
@@ -106,7 +106,7 @@ public class WeatherReportViewController: UIViewController {
     // MARK: - Private Methods
     //-------------------------------------------------------------------------------------------
 
-    private dynamic func refreshData() {
+    fileprivate dynamic func refreshData() {
         ICLoader.present()
         
         self.weatherClient.loadWeatherReportFor(self.cityName, onSuccess: {
@@ -119,13 +119,13 @@ public class WeatherReportViewController: UIViewController {
                 (message) in
                 
                 ICLoader.dismiss()
-                print ("Error" + message)
+                print ("Error" + message!)
                 
                 
         })
     }
     
-    private dynamic func presentMenu() {
+    fileprivate dynamic func presentMenu() {
         let rootViewController = self.assembly.rootViewController() as! RootViewController
         rootViewController.toggleSideViewController()
     }

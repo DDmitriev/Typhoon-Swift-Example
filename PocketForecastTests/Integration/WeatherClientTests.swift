@@ -13,21 +13,21 @@
 import Foundation
 import PocketForecast
 
-public class WeatherClientTests : XCTestCase {
+open class WeatherClientTests : XCTestCase {
     
     var weatherClient: WeatherClient!
     
-    public override func setUp() {
+    open override func setUp() {
 
         let assembly = ApplicationAssembly().activate()
 
         let configurer = TyphoonConfigPostProcessor()
-        configurer.useResourceWithName("Configuration.plist")
+        configurer.useResource(withName: "Configuration.plist")
         assembly.attachPostProcessor(configurer)
         self.weatherClient = assembly.coreComponents.weatherClient() as! WeatherClient
     }
     
-    public func test_it_receives_a_wather_report_given_a_valid_city() {
+    open func test_it_receives_a_wather_report_given_a_valid_city() {
         
         var receivedReport : WeatherReport?
         
@@ -51,7 +51,7 @@ public class WeatherClientTests : XCTestCase {
         })
     }
     
-    public func test_it_invokes_error_block_given_invalid_city() {
+    open func test_it_invokes_error_block_given_invalid_city() {
         
         var receivedMessage : String?
         
@@ -63,7 +63,7 @@ public class WeatherClientTests : XCTestCase {
         })
         
         
-        TyphoonTestUtils.waitForCondition( { () -> Bool in
+        TyphoonTestUtils.wait( forCondition: { () -> Bool in
             return receivedMessage == "Unable to find any matching weather location to the query submitted!"
         })
 

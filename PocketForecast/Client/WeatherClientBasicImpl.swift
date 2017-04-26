@@ -11,10 +11,10 @@
 
 import Foundation
 
-public class WeatherClientBasicImpl: NSObject, WeatherClient {
+open class WeatherClientBasicImpl: NSObject, WeatherClient {
 
     var weatherReportDao: WeatherReportDao?
-    var serviceUrl: NSURL?
+    var serviceUrl: URL?
     var daysToRetrieve: NSNumber?
 
     var apiKey: String? {
@@ -24,25 +24,25 @@ public class WeatherClientBasicImpl: NSObject, WeatherClient {
         }
     }
 
-    public func loadWeatherReportFor(city: String!, onSuccess successBlock: ((WeatherReport!) -> Void)!, onError errorBlock: ((String!) -> Void)!) {
+    open func loadWeatherReportFor(_ city: String!, onSuccess successBlock: ((WeatherReport?) -> Void)!, onError errorBlock: ((String?) -> Void)!) {
 
 
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.high).async {
             let url = self.queryURL(city)
-            let data : NSData! = NSData(contentsOfURL: url)!
+            let data : Data! = try! Data(contentsOf: url)
             
 
-            let dictionary = (try! NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableContainers)) as! NSDictionary
+            let dictionary = (try! JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.mutableContainers)) as! [String : AnyObject]
 
-            if let error = dictionary.parseError() {
-                dispatch_async(dispatch_get_main_queue()) {
+            if let error = WeatherReportParser().parseError(json: dictionary) {
+                DispatchQueue.main.async {
                     errorBlock(error.rootCause())
                     return
                 }
             } else {
-                let weatherReport: WeatherReport = dictionary.toWeatherReport()
+                let weatherReport: WeatherReport = WeatherReportParser().toWeatherReport(json: dictionary)
                 self.weatherReportDao!.saveReport(weatherReport)
-                dispatch_async(dispatch_get_main_queue()) {
+                DispatchQueue.main.async {
                     successBlock(weatherReport)
                     return
                 }
@@ -51,14 +51,15 @@ public class WeatherClientBasicImpl: NSObject, WeatherClient {
     }
 
 
-    private func queryURL(city: String) -> NSURL {
+    fileprivate func queryURL(_ city: String) -> URL {
 
-        let serviceUrl: NSURL = self.serviceUrl!
-        let url: NSURL = serviceUrl.uq_URLByAppendingQueryDictionary([
+        let serviceUrl: URL = self.serviceUrl!
+        let url: URL = (serviceUrl as NSURL).uq_URL(byAppendingQueryDictionary: [
                 "q": city,
                 "format": "json",
                 "num_of_days": daysToRetrieve!.stringValue,
-                "key": apiKey!
+                "key": apiKey!,
+                "tp": "24"
         ])
 
         return url

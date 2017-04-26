@@ -11,15 +11,15 @@
 
 import Foundation
 
-public class ForecastConditions : NSObject, NSCoding {
+open class ForecastConditions : NSObject, NSCoding {
 
-	private(set) var date : NSDate?
-    private(set) var low : Temperature?
-	private(set) var high : Temperature?
-	private(set) var summary : String?
-	private(set) var imageUri : String?
+	fileprivate(set) var date : Date?
+    fileprivate(set) var low : Temperature?
+	fileprivate(set) var high : Temperature?
+	fileprivate(set) var summary : String?
+	fileprivate(set) var imageUri : String?
     
-    public init(date : NSDate, low : Temperature?, high : Temperature?, summary : String, imageUri : String) {
+    public init(date : Date, low : Temperature?, high : Temperature?, summary : String, imageUri : String) {
         self.date = date
         self.low = low
         self.high = high
@@ -28,21 +28,21 @@ public class ForecastConditions : NSObject, NSCoding {
     }
     
     public required init?(coder : NSCoder) {
-        self.date = coder.decodeObjectForKey("date") as? NSDate
-        self.low = coder.decodeObjectForKey("low") as? Temperature
-        self.high = coder.decodeObjectForKey("high") as? Temperature
-        self.summary = coder.decodeObjectForKey("summary") as? String
-        self.imageUri = coder.decodeObjectForKey("imageUri") as? String
+        self.date = coder.decodeObject(forKey: "date") as? Date
+        self.low = coder.decodeObject(forKey: "low") as? Temperature
+        self.high = coder.decodeObject(forKey: "high") as? Temperature
+        self.summary = coder.decodeObject(forKey: "summary") as? String
+        self.imageUri = coder.decodeObject(forKey: "imageUri") as? String
     }
     
-    public func longDayOfTheWeek() -> String? {
+    open func longDayOfTheWeek() -> String? {
         
-        let formatter = NSDateFormatter()
+        let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"
-        return formatter.stringFromDate(self.date!)
+        return formatter.string(from: self.date!)
     }
     
-    public override var description: String {
+    open override var description: String {
         if self.low != nil && self.high != nil {
             return String(format: "Forecast : day=%@, low=%@, high=%@", self.longDayOfTheWeek()!, self.low!, self.high!)
         } else {
@@ -50,12 +50,12 @@ public class ForecastConditions : NSObject, NSCoding {
         }
     }
     
-    public func encodeWithCoder(coder : NSCoder) {
-        coder.encodeObject(self.date!, forKey:"date")
-        coder.encodeObject(self.low, forKey:"low")
-        coder.encodeObject(self.high, forKey:"high")
-        coder.encodeObject(self.summary!, forKey:"summary")
-        coder.encodeObject(self.imageUri!, forKey:"imageUri")
+    open func encode(with coder : NSCoder) {
+        coder.encode(self.date!, forKey:"date")
+        coder.encode(self.low, forKey:"low")
+        coder.encode(self.high, forKey:"high")
+        coder.encode(self.summary!, forKey:"summary")
+        coder.encode(self.imageUri!, forKey:"imageUri")
     }
     
 }

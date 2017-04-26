@@ -13,21 +13,21 @@
 import Foundation
 import PocketForecast
 
-public class WeatherReportParsing : XCTestCase {
+open class WeatherReportParsing : XCTestCase {
     
-    public func test_parses_valid_report() {
+    open func test_parses_valid_report() {
         
-        let jsonData = TyphoonBundleResource.withName("SampleForecast.json", inBundle: NSBundle(forClass: self.classForCoder)).data
+        let jsonData = TyphoonBundleResource.withName("SampleForecast.json", in: Bundle(for: self.classForCoder)).data
         
-        let dictionary = (try! NSJSONSerialization.JSONObjectWithData(jsonData, options: NSJSONReadingOptions.MutableContainers))
+        let dictionary = (try! JSONSerialization.jsonObject(with: jsonData!, options: JSONSerialization.ReadingOptions.mutableContainers))
             as! NSDictionary
         let weatherReport : WeatherReport = dictionary.toWeatherReport()
         
     }
     
-    public func test_parses_error_report() {
-        let jsonData = TyphoonBundleResource.withName("ErrorForecast.json", inBundle: NSBundle(forClass: self.classForCoder)).data
-        let dictionary = (try! NSJSONSerialization.JSONObjectWithData(jsonData, options: NSJSONReadingOptions.MutableContainers))
+    open func test_parses_error_report() {
+        let jsonData = TyphoonBundleResource.withName("ErrorForecast.json", in: Bundle(for: self.classForCoder)).data
+        let dictionary = (try! JSONSerialization.jsonObject(with: jsonData!, options: JSONSerialization.ReadingOptions.mutableContainers))
            as! NSDictionary
         
         let error : NSError! = dictionary.parseError()
@@ -36,11 +36,11 @@ public class WeatherReportParsing : XCTestCase {
 
     }
     
-    public func test_parse_error_returns_nil_for_valid_report() {
+    open func test_parse_error_returns_nil_for_valid_report() {
         
-        let jsonData = TyphoonBundleResource.withName("SampleForecast.json", inBundle: NSBundle(forClass: self.classForCoder)).data
+        let jsonData = TyphoonBundleResource.withName("SampleForecast.json", in: Bundle(for: self.classForCoder)).data
         
-        let dictionary = (try! NSJSONSerialization.JSONObjectWithData(jsonData, options: NSJSONReadingOptions.MutableContainers))
+        let dictionary = (try! JSONSerialization.jsonObject(with: jsonData!, options: JSONSerialization.ReadingOptions.mutableContainers))
             as! NSDictionary
         
         let error : NSError? = dictionary.parseError()

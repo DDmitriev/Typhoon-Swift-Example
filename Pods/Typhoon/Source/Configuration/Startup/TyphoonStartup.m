@@ -19,16 +19,17 @@
 #import "OCLogTemplate.h"
 #import "TyphoonAssemblyBuilder+PlistProcessor.h"
 #import "TyphoonAssemblyBuilder.h"
+#import "TyphoonGlobalConfigCollector.h"
 
 #import <objc/runtime.h>
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || TARGET_OS_TV
 #define ApplicationClass [UIApplication class]
 #elif TARGET_OS_MAC
 #define ApplicationClass [NSApplication class]
 #endif
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || TARGET_OS_TV
 #define ApplicationDidFinishLaunchingNotification UIApplicationDidFinishLaunchingNotification
 #elif TARGET_OS_MAC
 #define ApplicationDidFinishLaunchingNotification NSApplicationDidFinishLaunchingNotification
@@ -57,7 +58,7 @@
     if ([appDelegate respondsToSelector:initialAssembliesSelector]) {
         NSArray *assemblyClasses = [appDelegate performSelector:initialAssembliesSelector];
         NSArray *assemblies = [TyphoonAssemblyBuilder buildAssembliesWithClasses:assemblyClasses];
-        result = [TyphoonBlockComponentFactory factoryWithAssemblies:assemblies];
+        result = [TyphoonBlockComponentFactory factoryForResolvingUIWithAssemblies:assemblies];
     }
 #pragma clang diagnostic pop
     
@@ -75,32 +76,12 @@ static BOOL initialFactoryWasCreated = NO;
     if (initialFactoryRequestCount == 0 && !initialFactoryWasCreated) {
         NSArray *assemblies = [TyphoonAssemblyBuilder buildAssembliesFromPlistInBundle:[NSBundle mainBundle]];
         if (assemblies.count > 0) {
-            initialFactory = [TyphoonBlockComponentFactory factoryWithAssemblies:assemblies];
+            initialFactory = [TyphoonBlockComponentFactory factoryForResolvingUIWithAssemblies:assemblies];
             initialFactoryWasCreated = YES;
         }
     }
     initialFactoryRequestCount += 1;
 }
-
-+ (id<TyphoonDefinitionPostProcessor>)configPostProcessor
-{
-    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
-    NSString *fileName = [bundle infoDictionary][@"TyphoonConfigFilename"];
-    if (![fileName length]) {
-        NSString *bundleID = [bundle infoDictionary][@"CFBundleIdentifier"];
-        NSString *configFilename = [NSString stringWithFormat:@"config_%@.plist", bundleID];
-        NSString *configPath = [[bundle resourcePath] stringByAppendingPathComponent:configFilename];
-        if ([[NSFileManager defaultManager] fileExistsAtPath:configPath]) {
-            fileName = configFilename;
-        }
-    }
-    id<TyphoonDefinitionPostProcessor> configProcessor = nil;
-    if ([fileName length]) {
-        configProcessor = [TyphoonConfigPostProcessor forResourceNamed:fileName];
-    }
-    return configProcessor;
-}
-
 
 + (TyphoonComponentFactory *)initialFactory
 {
@@ -115,6 +96,9 @@ static BOOL initialFactoryWasCreated = NO;
     void(*originalImp)(id, SEL, id) = (void (*)(id, SEL, id))method_getImplementation(method);
 
     IMP adjustedImp = imp_implementationWithBlock(^(id instance, id delegate) {
+        if (!delegate) {
+            return;
+        }
         [self requireInitialFactory];
         id factoryFromDelegate = [self factoryFromAppDelegate:delegate];
         if (factoryFromDelegate && initialFactory) {
@@ -127,12 +111,15 @@ static BOOL initialFactoryWasCreated = NO;
             initialFactory = factoryFromDelegate;
         }
         if (initialFactory) {
-            id<TyphoonDefinitionPostProcessor> processor = [self configPostProcessor];
-            if (processor) {
-                [initialFactory attachPostProcessor:processor];
+            TyphoonGlobalConfigCollector *collector = [[TyphoonGlobalConfigCollector alloc] initWithAppDelegate:delegate];
+            NSBundle *bundle = [NSBundle bundleForClass:[delegate class]];
+            NSArray *globalConfigFileNames = [collector obtainGlobalConfigFilenamesFromBundle:bundle];
+            for (NSString *configName in globalConfigFileNames) {
+                id<TyphoonDefinitionPostProcessor> configProcessor = [TyphoonConfigPostProcessor forResourceNamed:configName inBundle:bundle];
+                [initialFactory attachDefinitionPostProcessor:configProcessor];
             }
+
             [self injectInitialFactoryIntoDelegate:delegate];
-            [TyphoonComponentFactory setFactoryForResolvingFromXibs:initialFactory];
         }
         [self releaseInitialFactoryWhenApplicationDidFinishLaunching];
 

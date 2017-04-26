@@ -11,15 +11,15 @@
 
 import Foundation
 
-public class CitiesListViewController : UIViewController, UITableViewDelegate, UITableViewDataSource, Themeable {
+open class CitiesListViewController : UIViewController, UITableViewDelegate, UITableViewDataSource, Themeable {
     
     let celciusSegmentIndex = 0
     let fahrenheitSegmentIndex = 1
     
     //Typhoon injected properties
     var cityDao : CityDao!
-    public var theme : Theme!
-    private dynamic var assembly : ApplicationAssembly!
+    open var theme : Theme!
+    fileprivate dynamic var assembly : ApplicationAssembly!
     
     
     //Interface Builder injected properties
@@ -29,7 +29,7 @@ public class CitiesListViewController : UIViewController, UITableViewDelegate, U
     var cities : NSArray?
     
     init(cityDao : CityDao, theme : Theme) {
-        super.init(nibName: "CitiesList", bundle: NSBundle.mainBundle())
+        super.init(nibName: "CitiesList", bundle: Bundle.main)
         self.cityDao = cityDao
         self.theme = theme
     }
@@ -39,13 +39,13 @@ public class CitiesListViewController : UIViewController, UITableViewDelegate, U
     }
     
     
-    public override func viewDidLoad() {
+    open override func viewDidLoad() {
         self.title = "Pocket Forecast"
         self.navigationItem.rightBarButtonItem =
-            UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Add, target: self, action: "addCity")
-        self.citiesListTableView.editing = true
-        self.temperatureUnitsControl.addTarget(self, action: "saveTemperatureUnitPreference", forControlEvents: UIControlEvents.ValueChanged)
-        if (Temperature.defaultUnits() == TemperatureUnits.Celsius) {
+            UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.add, target: self, action: #selector(CitiesListViewController.addCity))
+        self.citiesListTableView.isEditing = true
+        self.temperatureUnitsControl.addTarget(self, action: #selector(CitiesListViewController.saveTemperatureUnitPreference), for: UIControlEvents.valueChanged)
+        if (Temperature.defaultUnits() == TemperatureUnits.celsius) {
             self.temperatureUnitsControl.selectedSegmentIndex = celciusSegmentIndex
         }
         else {
@@ -55,91 +55,91 @@ public class CitiesListViewController : UIViewController, UITableViewDelegate, U
     }
     
 
-    public override func viewWillAppear(animated : Bool) {
+    open override func viewWillAppear(_ animated : Bool) {
         super.viewWillAppear(animated)
         self.refreshCitiesList()
         let cityName : String? = cityDao.loadSelectedCity()
         if (cityName != nil) {
             
-            let indexPath = NSIndexPath(forRow: cities!.indexOfObject(cityName!), inSection: 0)
-            self.citiesListTableView.selectRowAtIndexPath(indexPath, animated: true, scrollPosition: UITableViewScrollPosition.Middle)
+            let indexPath = IndexPath(row: cities!.index(of: cityName!), section: 0)
+            self.citiesListTableView.selectRow(at: indexPath, animated: true, scrollPosition: UITableViewScrollPosition.middle)
         }
     }
     
-    public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    open func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
-    public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if (cities != nil) {
             return cities!.count
         }
         return 0
     }
     
-    public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let reuseId = "Cities"
-        var cell : CityTableViewCell? = tableView.dequeueReusableCellWithIdentifier(reuseId) as? CityTableViewCell
+        var cell : CityTableViewCell? = tableView.dequeueReusableCell(withIdentifier: reuseId) as? CityTableViewCell
         if (cell == nil) {
-            cell = CityTableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: reuseId)
+            cell = CityTableViewCell(style: UITableViewCellStyle.default, reuseIdentifier: reuseId)
         }
-        cell!.selectionStyle = UITableViewCellSelectionStyle.Gray
-        cell!.cityLabel.backgroundColor = UIColor.clearColor()
+        cell!.selectionStyle = UITableViewCellSelectionStyle.gray
+        cell!.cityLabel.backgroundColor = UIColor.clear
         cell!.cityLabel.font = UIFont.applicationFontOfSize(16)
-        cell!.cityLabel.textColor = UIColor.darkGrayColor()
-        cell!.cityLabel.text = cities!.objectAtIndex(indexPath.row) as? String
-        cell!.accessoryType = UITableViewCellAccessoryType.DisclosureIndicator
+        cell!.cityLabel.textColor = UIColor.darkGray
+        cell!.cityLabel.text = cities!.object(at: indexPath.row) as? String
+        cell!.accessoryType = UITableViewCellAccessoryType.disclosureIndicator
         
         return cell!
     }
   
-    public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    open func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        let cityName : String = cities!.objectAtIndex(indexPath.row) as! String
+        let cityName : String = cities!.object(at: indexPath.row) as! String
         cityDao.saveCurrentlySelectedCity(cityName)
         
         let rootViewController = self.assembly.rootViewController() as! RootViewController
         rootViewController.dismissCitiesListController()
     }
     
-    public func tableView(tableView: UITableView, editingStyleForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCellEditingStyle {
+    open func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
         
-        return UITableViewCellEditingStyle.Delete
+        return UITableViewCellEditingStyle.delete
     }
 
-    public func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+    open func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
 
-        if (editingStyle == UITableViewCellEditingStyle.Delete) {
-            let city = cities!.objectAtIndex(indexPath.row) as! String
+        if (editingStyle == UITableViewCellEditingStyle.delete) {
+            let city = cities!.object(at: indexPath.row) as! String
             self.cityDao.deleteCity(city)
             self.refreshCitiesList()
         }
     }
 
-    private dynamic func addCity() {
+    fileprivate dynamic func addCity() {
         
         let rootViewController = self.assembly.rootViewController() as! RootViewController
         rootViewController.showAddCitiesController()
     }
     
-    private func refreshCitiesList() {
-        self.cities = self.cityDao.listAllCities() as? Array<String>
+    fileprivate func refreshCitiesList() {
+        self.cities = self.cityDao.listAllCities() as? Array<String> as NSArray?
         self.citiesListTableView.reloadData()
     }
     
-    private dynamic func saveTemperatureUnitPreference() {
+    fileprivate dynamic func saveTemperatureUnitPreference() {
         if (self.temperatureUnitsControl.selectedSegmentIndex == celciusSegmentIndex) {
-            Temperature.setDefaultUnits(TemperatureUnits.Celsius)
+            Temperature.setDefaultUnits(TemperatureUnits.celsius)
         }
         else {
-            Temperature.setDefaultUnits(TemperatureUnits.Fahrenheit)
+            Temperature.setDefaultUnits(TemperatureUnits.fahrenheit)
         }
     }
     
-    private func applyTheme() {
+    fileprivate func applyTheme() {
         self.temperatureUnitsControl.tintColor = self.theme.controlTintColor
-        self.navigationController!.navigationBar.tintColor = UIColor.whiteColor()
+        self.navigationController!.navigationBar.tintColor = UIColor.white
         self.navigationController!.navigationBar.barTintColor = self.theme.navigationBarColor
     }
     

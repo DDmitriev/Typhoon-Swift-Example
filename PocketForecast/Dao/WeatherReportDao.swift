@@ -17,8 +17,8 @@ import Foundation
 */
 @objc public protocol WeatherReportDao {
     
-    func getReportForCityName(cityName: String!) -> WeatherReport?
+    func getReportForCityName(_ cityName: String!) -> WeatherReport?
     
-    func saveReport(weatherReport: WeatherReport!)
+    func saveReport(_ weatherReport: WeatherReport!)
         
 }
